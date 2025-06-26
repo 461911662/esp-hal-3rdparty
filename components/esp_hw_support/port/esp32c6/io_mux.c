@@ -6,7 +6,11 @@
 
 #include "sdkconfig.h"
 #include "esp_attr.h"
+#ifndef __NuttX__
 #include "freertos/FreeRTOS.h"
+#else
+#include "spinlock.h"
+#endif
 #include "esp_private/io_mux.h"
 #include "esp_private/periph_ctrl.h"
 #include "hal/gpio_ll.h"
@@ -14,7 +18,24 @@
 
 #define RTCIO_RCC_ATOMIC()  PERIPH_RCC_ATOMIC()
 
+#ifndef __NuttX__
 static portMUX_TYPE s_io_mux_spinlock = portMUX_INITIALIZER_UNLOCKED;
+#else
+#define portENTER_CRITICAL(lock) do { \
+            assert(g_flags == UINT32_MAX); \
+            g_flags = spin_lock_irqsave(lock); \
+        } while(0)
+#define portEXIT_CRITICAL(lock) do { \
+            spin_unlock_irqrestore((lock), g_flags); \
+            g_flags = UINT32_MAX; \
+        } while(0)
+static irqstate_t g_flags = UINT32_MAX;
+
+static const char __attribute__((__unused__)) *RTCIO_TAG = "RTCIO";
+
+extern spinlock_t s_io_mux_spinlock;
+#endif
+
 static soc_module_clk_t s_io_mux_clk_src = 0; // by default, the clock source is not set explicitly by any consumer (e.g. SDM, Filter)
 
 #if CONFIG_ULP_COPROC_ENABLED
