@@ -183,6 +183,9 @@ static void do_secondary_init(void)
     // assigned to them since they have been resumed already.
     do_system_init_fn(ESP_SYSTEM_INIT_STAGE_SECONDARY);
 
+#ifndef __NuttX__
+    // NuttX can't support this loop, since CPU1 is only started later on the start up sequence.
+    // nx_smp_start() is called later, on nx_start() which is called after SYS_STARTUP_FN().
 #if !CONFIG_ESP_SYSTEM_SINGLE_CORE_MODE
     // Wait for all cores to finish secondary init.
     volatile bool system_inited = false;
@@ -195,6 +198,7 @@ static void do_secondary_init(void)
         esp_rom_delay_us(100);
     }
 #endif
+#endif  // __NuttX__
 }
 
 static void start_cpu0_default(void)
