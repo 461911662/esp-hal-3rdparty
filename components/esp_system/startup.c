@@ -176,12 +176,13 @@ static void do_core_init(void)
 
 static void do_secondary_init(void)
 {
+#ifndef __NuttX__
 #if !CONFIG_ESP_SYSTEM_SINGLE_CORE_MODE
     // The port layer transferred control to this function with other cores 'paused',
     // resume execution so that cores might execute component initialization functions.
     startup_resume_other_cores();
 #endif
-
+#endif
     // Execute initialization functions esp_system_init_fn_t assigned to the main core. While
     // this is happening, all other cores are executing the initialization functions
     // assigned to them since they have been resumed already.
