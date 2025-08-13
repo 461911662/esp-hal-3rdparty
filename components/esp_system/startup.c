@@ -70,6 +70,10 @@ static const char* TAG = "cpu_start";
 __attribute__((no_sanitize_undefined)) /* TODO: IDF-8133 */
 static void do_global_ctors(void)
 {
+#if defined(__NuttX__) && defined(CONFIG_HAVE_CXXINITIALIZE)
+    return;
+#endif
+
 #if __riscv
     extern void (*__init_priority_array_start)(void);
     extern void (*__init_priority_array_end)(void);
