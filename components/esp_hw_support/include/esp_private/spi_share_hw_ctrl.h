@@ -20,6 +20,12 @@
 extern "C" {
 #endif
 
+#ifdef __NuttX__
+typedef uint32_t        TickType_t;
+typedef uint32_t        UBaseType_t;
+typedef int32_t         BaseType_t;
+#endif
+
 #if !SOC_RCC_IS_INDEPENDENT
 #define SPI_COMMON_RCC_CLOCK_ATOMIC() PERIPH_RCC_ATOMIC()
 #else
@@ -336,9 +342,7 @@ bool spi_bus_lock_touch(spi_bus_lock_dev_handle_t dev_handle);
  *  - ESP_OK: on success
  *  - ESP_ERR_INVALID_ARG: timeout is not portMAX_DELAY
  */
-#ifndef __NuttX__
 esp_err_t spi_bus_lock_acquire_start(spi_bus_lock_dev_handle_t dev_handle, TickType_t wait);
-#endif
 
 /**
  * Release the bus acquired. Will pass the acquiring processor to other blocked
