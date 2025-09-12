@@ -6,14 +6,34 @@
 
 #include "sdkconfig.h"
 #include "esp_attr.h"
+#ifndef __NuttX__
 #include "freertos/FreeRTOS.h"
+#else
+#include "spinlock.h"
+#endif
 #include "esp_private/io_mux.h"
 #include "hal/rtc_io_ll.h"
 
+#ifndef __NuttX__
 #define RTCIO_RCC_ATOMIC() \
     for (int _rc_cnt = 1; \
     _rc_cnt ? (portENTER_CRITICAL(&rtc_spinlock), 1) : 0;     \
     portEXIT_CRITICAL(&rtc_spinlock), _rc_cnt--)
+#else
+#define RTCIO_RCC_ATOMIC()
+#define portENTER_CRITICAL(lock) do { \
+            assert(g_flags == UINT32_MAX); \
+            g_flags = spin_lock_irqsave(lock); \
+        } while(0)
+#define portEXIT_CRITICAL(lock) do { \
+            spin_unlock_irqrestore((lock), g_flags); \
+            g_flags = UINT32_MAX; \
+        } while(0)
+static irqstate_t g_flags = UINT32_MAX;
+
+extern spinlock_t s_io_mux_spinlock;
+extern spinlock_t rtc_spinlock;
+#endif
 
 esp_err_t io_mux_set_clock_source(soc_module_clk_t clk_src)
 {
@@ -21,8 +41,10 @@ esp_err_t io_mux_set_clock_source(soc_module_clk_t clk_src)
     return ESP_OK;
 }
 
+#ifndef __NuttX__
 extern portMUX_TYPE rtc_spinlock;
 static portMUX_TYPE s_io_mux_spinlock = portMUX_INITIALIZER_UNLOCKED;
+#endif
 
 static rtc_io_status_t s_rtc_io_status = {
     .rtc_io_enabled_cnt = { 0 },
