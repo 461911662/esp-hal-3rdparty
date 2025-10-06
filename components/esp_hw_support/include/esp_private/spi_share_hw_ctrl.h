@@ -12,7 +12,9 @@
 #include "soc/spi_periph.h"
 #include "soc/gpio_struct.h"
 #include "esp_private/periph_ctrl.h"
+#ifndef __NuttX__
 #include "freertos/FreeRTOS.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -334,7 +336,9 @@ bool spi_bus_lock_touch(spi_bus_lock_dev_handle_t dev_handle);
  *  - ESP_OK: on success
  *  - ESP_ERR_INVALID_ARG: timeout is not portMAX_DELAY
  */
+#ifndef __NuttX__
 esp_err_t spi_bus_lock_acquire_start(spi_bus_lock_dev_handle_t dev_handle, TickType_t wait);
+#endif
 
 /**
  * Release the bus acquired. Will pass the acquiring processor to other blocked
@@ -395,7 +399,9 @@ esp_err_t spi_bus_lock_bg_request(spi_bus_lock_dev_handle_t dev_handle);
  *  - ESP_ERR_INVALID_STATE: The device is not the acquiring bus.
  *  - ESP_ERR_INVALID_ARG: Timeout is not portMAX_DELAY.
  */
+#ifndef __NuttX__
 esp_err_t spi_bus_lock_wait_bg_done(spi_bus_lock_dev_handle_t dev_handle, TickType_t wait);
+#endif
 
 /**
  * Handle interrupt and closure of last operation. Should be called at the beginning of the ISR,
@@ -437,7 +443,9 @@ bool spi_bus_lock_bg_entry(spi_bus_lock_handle_t lock);
  * @return false if retry is required, indicating that there is pending BG request.
  *         otherwise true and quit ISR is allowed.
  */
+#ifndef __NuttX__
 bool spi_bus_lock_bg_exit(spi_bus_lock_handle_t lock, bool wip, BaseType_t* do_yield);
+#endif
 
 /**
  * Check whether there is device asking for the acquiring device, and the desired
